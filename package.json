@@ -1,0 +1,11 @@
+{
+  "name": "ferenc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser wavetable / sampler / granular groovebox with an Elektron-style sequencer and Web MIDI",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node --test test/*.test.mjs"
+  }
+}
