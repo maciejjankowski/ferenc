@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ferenc</title>
+<meta name="description" content="Browser wavetable / sampler / granular groovebox with an Elektron-style sequencer, p-locks and Web MIDI.">
+<meta name="theme-color" content="#151719">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23151719'/%3E%3Cpath d='M9 24 13 8h12l-1 4h-8l-1 4h7l-1 4h-7l-1 4z' fill='%23f0a12c'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+<div id="stage">
+  <div id="panel">
+
+    <!-- rear connector strip -->
+    <div class="strip">
+      <span class="screw" style="--x:24"></span>
+      <span class="lbl" style="--x:120">PHONES</span>
+      <span class="lbl" style="--x:300">L ··· OUT ··· R</span>
+      <span class="lbl" style="--x:480">L ··· IN ··· R</span>
+      <span class="lbl" style="--x:660">MIDI IN <i class="led" id="led-midiin"></i></span>
+      <span class="lbl" style="--x:820">MIDI OUT <i class="led" id="led-midiout"></i></span>
+      <span class="lbl" style="--x:980">MIDI THRU</span>
+      <span class="lbl" style="--x:1120">USB</span>
+      <button class="lbl link" style="--x:1260" data-ui="help">HELP ?</button>
+      <button class="lbl link" style="--x:1420" data-ui="power">POWER <i class="led" id="led-power"></i></button>
+      <span class="screw" style="--x:1576"></span>
+    </div>
+
+    <div class="logo ctl" style="--x:1500;--y:96" aria-hidden="true">
+      <svg viewBox="0 0 64 40"><path d="M10 36 20 4h40l-3 10H33l-2 6h20l-3 10H28l-2 6z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- left knobs -->
+    <div class="ctl knobwrap big" style="--x:120;--y:168"><div class="knob" id="k-main"></div><span class="kl">Main Volume</span></div>
+    <div class="ctl knobwrap big" style="--x:120;--y:322"><div class="knob" id="k-data"></div><span class="kl">Level/Data</span></div>
+
+    <!-- screen -->
+    <div class="bezel" style="--x:240;--y:84">
+      <div id="screen">
+        <div class="scr-head">
+          <span id="h-pat" class="inv">A01</span>
+          <span id="h-q" class="q"></span>
+          <span id="h-trk">T1</span>
+          <span id="h-mach">WAVE</span>
+          <span id="h-name" class="grow">---</span>
+          <span id="h-flags"></span>
+          <span id="h-state">■</span>
+          <span id="h-bpm">120.0</span>
+        </div>
+        <div class="scr-tracks" id="tstrip"></div>
+        <div class="scr-body">
+          <canvas id="viz"></canvas>
+          <div id="menu" hidden></div>
+        </div>
+        <div class="scr-grid" id="grid"></div>
+        <div id="toast"></div>
+        <div id="boot">
+          <div class="boot-logo">FERENC</div>
+          <div class="boot-sub">WAVE · SAMPLE · GRAIN</div>
+          <button id="boot-btn">POWER ON</button>
+          <div class="boot-hint">click to start audio · desktop Chrome / Edge / Firefox</div>
+        </div>
+      </div>
+      <div class="brand">Ferenc <span>granular groovebox</span></div>
+    </div>
+
+    <!-- 8 data knobs -->
+    <div class="ctl knobwrap" style="--x:1030;--y:186"><div class="knob" data-knob="0"></div><span class="kl">A</span></div>
+    <div class="ctl knobwrap" style="--x:1196;--y:186"><div class="knob" data-knob="1"></div><span class="kl">B</span></div>
+    <div class="ctl knobwrap" style="--x:1362;--y:186"><div class="knob" data-knob="2"></div><span class="kl">C</span></div>
+    <div class="ctl knobwrap" style="--x:1528;--y:186"><div class="knob" data-knob="3"></div><span class="kl">D</span></div>
+    <div class="ctl knobwrap" style="--x:1030;--y:330"><div class="knob" data-knob="4"></div><span class="kl">E</span></div>
+    <div class="ctl knobwrap" style="--x:1196;--y:330"><div class="knob" data-knob="5"></div><span class="kl">F</span></div>
+    <div class="ctl knobwrap" style="--x:1362;--y:330"><div class="knob" data-knob="6"></div><span class="kl">G</span></div>
+    <div class="ctl knobwrap" style="--x:1528;--y:330"><div class="knob" data-knob="7"></div><span class="kl">H</span></div>
+
+    <!-- parameter page buttons -->
+    <div class="ctl bw" style="--x:1004;--y:448"><button class="btn" data-btn="pg:TRIG">TRIG</button><span class="fn">Quantize</span></div>
+    <div class="ctl bw" style="--x:1110;--y:448"><button class="btn hi" data-btn="pg:SRC">SRC</button><span class="fn">Machine</span></div>
+    <div class="ctl bw" style="--x:1216;--y:448"><button class="btn" data-btn="pg:FLTR">FLTR</button><span class="fn">Setup</span></div>
+    <div class="ctl bw" style="--x:1322;--y:448"><button class="btn" data-btn="pg:AMP">AMP</button><span class="fn">Sequencer</span></div>
+    <div class="ctl bw" style="--x:1428;--y:448"><button class="btn" data-btn="pg:FX">FX</button><span class="fn">Send FX</span></div>
+    <div class="ctl bw" style="--x:1534;--y:448"><button class="btn" data-btn="pg:MOD">MOD</button><span class="fn">Mixer</span></div>
+
+    <!-- left column -->
+    <div class="ctl bw" style="--x:120;--y:548"><button class="btn func" data-btn="func">FUNC</button><span class="fn">&nbsp;</span></div>
+    <div class="ctl bw" style="--x:120;--y:640"><button class="btn icon" data-btn="kb" title="Keyboard mode"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8.5 5v8M12 5v8M15.5 5v8M6.8 5v8h3.4V5M13.8 5v8h3.4V5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><span class="fn">KB Setup</span></div>
+    <div class="ctl bw" style="--x:120;--y:742"><button class="btn" data-btn="trk">TRK</button><span class="fn">Mute Mode</span></div>
+    <div class="ctl bw" style="--x:120;--y:834"><button class="btn" data-btn="ptn">PTN</button><span class="fn">Bank</span></div>
+    <div class="ctl bw" style="--x:120;--y:926"><button class="btn" data-btn="song">SONG</button><span class="fn">Song Edit</span></div>
+
+    <!-- icon row -->
+    <div class="ctl bw" style="--x:300;--y:548"><button class="btn icon" data-btn="proj" title="Project"><svg viewBox="0 0 24 24"><path d="M5 6h3M5 12h3M5 18h3M11 6h8M11 12h8M11 18h8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button><span class="fn">Perform</span></div>
+    <div class="ctl bw" style="--x:410;--y:548"><button class="btn icon" data-btn="settings" title="MIDI settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><span class="fn">Save Proj</span></div>
+    <div class="ctl bw" style="--x:520;--y:548"><button class="btn icon" data-btn="samples" title="Samples"><svg viewBox="0 0 24 24"><path d="M4 12h1M7 8v8M10 5v14M13 9v6M16 6v12M19 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><span class="fn">Samples</span></div>
+    <div class="ctl bw" style="--x:630;--y:548"><button class="btn icon" data-btn="tempo" title="Tempo"><svg viewBox="0 0 24 24"><path d="M8 20h8l-2.5-15h-3zM12 15l5-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg></button><span class="fn">Tap Tempo</span></div>
+
+    <!-- transport -->
+    <div class="ctl bw" style="--x:330;--y:640"><button class="btn icon tr" data-btn="rec" title="Record"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button><span class="fn">Copy</span></div>
+    <div class="ctl bw" style="--x:470;--y:640"><button class="btn icon tr" data-btn="play" title="Play / pause"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></button><span class="fn">Clear</span></div>
+    <div class="ctl bw" style="--x:610;--y:640"><button class="btn icon tr" data-btn="stop" title="Stop"><svg viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button><span class="fn">Paste</span></div>
+
+    <!-- navigation -->
+    <div class="ctl bw" style="--x:1004;--y:548"><button class="btn" data-btn="yes">YES</button><span class="fn">Save</span></div>
+    <div class="ctl bw" style="--x:1216;--y:548"><button class="btn icon" data-btn="up" title="Up / octave +"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button><span class="fn">&nbsp;</span></div>
+    <span class="ctl note" style="--x:1300;--y:548">⇕ KB Octave</span>
+    <div class="ctl leds" style="--x:1480;--y:548" id="leds"></div>
+    <div class="ctl bw" style="--x:1004;--y:640"><button class="btn" data-btn="no">NO</button><span class="fn">Reload</span></div>
+    <div class="ctl bw" style="--x:1110;--y:640"><button class="btn icon" data-btn="left" title="Prev page / µtime -"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button><span class="fn">µTime−</span></div>
+    <div class="ctl bw" style="--x:1216;--y:640"><button class="btn icon" data-btn="down" title="Down / octave -"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button><span class="fn">&nbsp;</span></div>
+    <div class="ctl bw" style="--x:1322;--y:640"><button class="btn icon" data-btn="right" title="Next page / µtime +"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button><span class="fn">µTime+</span></div>
+    <div class="ctl bw" style="--x:1500;--y:640"><button class="btn wide" data-btn="page">PAGE</button><span class="fn">Fill / Hold</span></div>
+
+    <!-- trig keys -->
+    <div id="trigs"></div>
+    <span class="ctl note dim" style="--x:892;--y:816">Track / Mute · Pattern</span>
+
+  </div>
+</div>
+
+<input type="file" id="file-in" multiple accept="audio/*,.wav,.aif,.aiff,.flac,.mp3,.ogg" hidden>
+<input type="file" id="folder-in" webkitdirectory multiple hidden>
+<input type="file" id="proj-in" accept=".json,application/json" hidden>
+
+<div id="drop">DROP AUDIO FILES · single cycles → WAVE · longer samples → SMPL / GRAN</div>
+
+<div id="help" hidden>
+  <div class="help-card">
+    <button class="close" data-ui="help">×</button>
+    <h2>Ferenc · quick reference</h2>
+    <div class="cols">
+      <section>
+        <h3>Sound</h3>
+        <p><b>TRIG SRC FLTR AMP FX MOD</b> select the parameter page for knobs A–H. Press a page again for its 2nd page (SRC on GRAN, MOD = LFO1/LFO2).</p>
+        <p><b>FUNC + SRC</b> cycles the machine: <b>WAVE</b> (single cycle / wavetable oscillator, unison), <b>SMPL</b> (sample playback), <b>GRAN</b> (granular cloud).</p>
+        <p>Knobs: drag up/down or wheel. <b>Shift</b> = fine. Double-click = default (or clear lock).</p>
+        <h3>Samples</h3>
+        <p>Drop WAV/AIFF/MP3/FLAC files anywhere, or open the <b>Samples</b> button. Files ≤ 4096 samples are single cycles (band-limited wavetables). Serum <code>clm</code> wavetables are detected. Stored in the browser.</p>
+      </section>
+      <section>
+        <h3>Sequencer</h3>
+        <p>Click a trig key to toggle a step. <b>Long-press</b> / right-click / FUNC+key latches a step: knobs now set <b>parameter locks</b> for it (NO to release). ◀ ▶ nudge µ-timing of the locked step.</p>
+        <p><b>TRK</b> + key = select track, <b>FUNC+TRK</b> = mute mode. <b>PTN</b> + key = pattern (queued while playing), <b>FUNC+PTN</b> = bank. <b>PAGE</b> = next 16 steps, hold = FILL.</p>
+        <p><b>REC</b> arms live recording (quantize: FUNC+TRIG). FUNC + REC/PLAY/STOP = copy / clear / paste (NO undoes).</p>
+        <p><b>KB</b> turns trig keys into a keyboard (FUNC+KB: scale/root).</p>
+      </section>
+      <section>
+        <h3>Computer keys · <b>Tab</b> toggles EDIT / PLAY</h3>
+        <p><b>EDIT</b> (default): <b>1–6</b> TRIG SRC FLTR AMP FX MOD (again = 2nd page) · <b>7</b> delay/reverb · <b>8</b> mixer · <b>9</b> sequencer · <b>0</b> samples ·
+        <b>Q W E R / A S D F</b> = knobs A–H: <b>hold + move the mouse</b> (no click) to change, or tap to select then scroll / ↑↓ · <b>Backspace</b> reset ·
+        <b>Z X C V B N M ,</b> tracks 1–8 (Shift = mute) · <b>G</b> preview note</p>
+        <p><b>PLAY</b>: <b>A W S E D F T G Y H U J K O L P</b> notes · <b>Z / X</b> octave · <b>1–8</b> track</p>
+        <p>Both: <b>Space</b> play/pause · <b>Shift</b> = FUNC / fine · <b>Enter</b> YES · <b>Esc</b> NO · ←→ page/µtime · <b>[ ]</b> step page · <b>?</b> help</p>
+        <h3>MIDI</h3>
+        <p>Gear button: ports, channel, clock in/out, thru. Notes play the active track (or per-track channels via FUNC+FLTR). CC 16–23 = knobs A–H, 74 cutoff, 71 reso… Sequencer notes can be sent out per track.</p>
+        <h3>Menus</h3>
+        <p>≡ project (save, export with samples, import) · gear MIDI · waveform samples · metronome tempo (FUNC = tap) · FUNC+AMP sequencer · FUNC+FX delay/reverb · FUNC+MOD mixer.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  if (location.protocol === 'file:') document.querySelector('.boot-hint').textContent =
+    'Opened from file:// — serve this folder over http (python3 -m http.server) or use GitHub Pages.';
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
